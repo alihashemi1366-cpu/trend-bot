@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """ربات تلگرام: یافتن ویدیوهای ترند هم‌موضوع با کانال شما (منوی دکمه‌ای)."""
 import asyncio
+import hashlib
 import html
 import io
 import logging
@@ -441,9 +442,11 @@ def main():
     app = build_app(TOKEN)
     base = os.environ.get("RENDER_EXTERNAL_URL") or os.environ.get("WEBHOOK_BASE_URL")
     if base:
-        secret = os.environ.get("WEBHOOK_SECRET")
-        if not secret:
+        raw_secret = os.environ.get("WEBHOOK_SECRET")
+        if not raw_secret:
             raise SystemExit("WEBHOOK_SECRET باید تنظیم شود.")
+        # تلگرام فقط A-Z a-z 0-9 _ - را در secret_token قبول می‌کند؛ هر مقداری را به هش امن تبدیل می‌کنیم.
+        secret = hashlib.sha256(raw_secret.encode("utf-8")).hexdigest()
         log.info("Starting in webhook mode")
         app.run_webhook(
             listen="0.0.0.0",
